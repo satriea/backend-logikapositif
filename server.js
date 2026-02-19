@@ -18,13 +18,20 @@ app.use(
   })
 );
 
-app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Izinkan pengiriman data JSON hingga 10MB (atau sesuaikan kebutuhan)
+app.use(express.json({ limit: '10mb' }));
+
+// Jika kamu menggunakan urlencoded juga, naikkan limitnya
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // --- IMPORT ROUTES ---
 const bookRoutes = require('./routes/bookRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 // --- ROUTES ---
 app.use('/api/books', bookRoutes);
+app.use('/api', authRoutes);
 
 // Route
 app.get('/', (req, res) => {

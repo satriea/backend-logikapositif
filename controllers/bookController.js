@@ -15,25 +15,42 @@ const bookController = {
 
   // Tambah buku baru
   createBook: async (req, res) => {
-    const { title, subtitle, tag, color, content } = req.body;
+    // 1. Ambil 'image' juga dari req.body
+    const { title, subtitle, tag, color, content, image } = req.body;
+
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+    // Validasi sederhana
+    if (!title || !content) {
+      return res.status(400).json({ message: 'Judul dan konten wajib diisi!' });
+    }
+
     try {
+      // 2. Tambahkan kolom 'image' di query SQL
       const sql =
-        'INSERT INTO books (title, subtitle, tag, color, content) VALUES (?, ?, ?, ?, ?)';
+        'INSERT INTO books (title, subtitle, tag, color, content, image) VALUES (?, ?, ?, ?, ?, ?)';
+
       const [result] = await pool.query(sql, [
         title,
         subtitle,
         tag,
         color,
-        content
+        content,
+        imagePath
       ]);
+
       res.status(201).json({
         id: result.insertId,
-        message: 'Karya berhasil dipublikasikan!'
+        message: 'Karya berhasil dipublikasikan!',
+        imageUrl: imagePath,
+        data: { title, tag }
       });
     } catch (err) {
-      res
-        .status(500)
-        .json({ error: 'Gagal menyimpan data', message: err.message });
+      console.error('DB Error:', err);
+      res.status(500).json({
+        error: 'Gagal menyimpan data ke database',
+        message: err.message
+      });
     }
   },
 
